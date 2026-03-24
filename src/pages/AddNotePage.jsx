@@ -14,8 +14,8 @@ const AddNotePage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!body.trim()) {
-      alert("Isi catatan tidak boleh kosong!");
+    if (!body.trim() && !body.trim()) {
+      alert("Judul dan isi catatan tidak boleh kosong!");
       return;
     }
 
@@ -72,7 +72,7 @@ const AddNotePage = () => {
           <button
             type="submit"
             className="flex gap-3 justify-center items-center bg-gray-900 hover:bg-black text-white py-3 rounded-lg font-medium transition"
-            disabled={!body.trim()}
+            disabled={!title.trim() || !body.trim()}
           >
             <Save />
             <span> Simpan Catatan</span>
