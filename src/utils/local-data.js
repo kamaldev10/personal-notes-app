@@ -1,6 +1,4 @@
-const STORAGE_KEY = "notes-app";
-
-const initialData = [
+let notes = [
   {
     id: "notes-1",
     title: "Babel",
@@ -45,99 +43,72 @@ const initialData = [
   },
 ];
 
-function getNotesFromStorage() {
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
-}
-
-function saveNotes(notes) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-}
-
-function mergeNotes(initial, local) {
-  const map = new Map();
-
-  // masukkan initial dulu
-  initial.forEach((note) => {
-    map.set(note.id, note);
-  });
-
-  // override dengan local (kalau ada id sama)
-  local.forEach((note) => {
-    map.set(note.id, note);
-  });
-
-  return Array.from(map.values());
-}
-
 function getAllNotes() {
-  const local = getNotesFromStorage();
-  return mergeNotes(initialData, local);
+  return notes;
 }
 
 function getNote(id) {
-  const notes = getNotesFromStorage();
-  return notes.find((note) => note.id === id);
+  const foundedNote = notes.find((note) => note.id === id);
+  return foundedNote;
 }
 
 function getActiveNotes() {
-  return getAllNotes().filter((note) => !note.archived);
+  const activeNotes = notes.filter((note) => !note.archived);
+  return activeNotes;
 }
 
 function getArchivedNotes() {
-  return getAllNotes().filter((note) => note.archived);
+  const archivedNotes = notes.filter((note) => note.archived);
+  return archivedNotes;
 }
 
 function addNote({ title, body }) {
-  const notes = getAllNotes();
-
-  const newNote = {
-    id: `notes-${+new Date()}`,
-    title: title || "(untitled)",
-    body,
-    createdAt: new Date().toISOString(),
-    archived: false,
-  };
-
-  saveNotes([...notes, newNote]);
+  notes = [
+    ...notes,
+    {
+      id: `notes-${+new Date()}`,
+      title: title || "(untitled)",
+      body,
+      createdAt: new Date().toISOString(),
+      archived: false,
+    },
+  ];
 }
 
 function deleteNote(id) {
-  if (confirm("Yakin hapus catatan?")) {
-    const notes = getAllNotes();
-    const filtered = notes.filter((note) => note.id !== id);
-    saveNotes(filtered);
-  }
+  notes = notes.filter((note) => note.id !== id);
 }
 
 function archiveNote(id) {
-  const notes = getAllNotes();
-
-  const updated = notes.map((note) =>
-    note.id === id ? { ...note, archived: true } : note,
-  );
-
-  saveNotes(updated);
+  notes = notes.map((note) => {
+    if (note.id === id) {
+      return { ...note, archived: true };
+    }
+    return note;
+  });
 }
 
 function unarchiveNote(id) {
-  const notes = getAllNotes();
+  notes = notes.map((note) => {
+    if (note.id === id) {
+      return { ...note, archived: false };
+    }
 
-  const updated = notes.map((note) =>
-    note.id === id ? { ...note, archived: false } : note,
-  );
-
-  saveNotes(updated);
+    return note;
+  });
 }
 
 function editNote({ id, title, body }) {
-  const notes = getAllNotes();
+  const noteToEdit = notes.find((note) => note.id === id);
+  noteToEdit.title = title;
+  noteToEdit.body = body;
 
-  const updated = notes.map((note) =>
-    note.id === id ? { ...note, title, body } : note,
-  );
-
-  saveNotes(updated);
+  notes = notes.map((note) => {
+    if (note.id === id) {
+      return note;
+    }
+    return note;
+  });
 }
 
 export {
