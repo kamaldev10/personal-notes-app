@@ -1,5 +1,9 @@
 import React, { useEffect } from "react";
-import { getActiveNotes, deleteNote, archiveNote } from "../api/network-data";
+import {
+  getArchivedNotes,
+  deleteNote,
+  unarchiveNote,
+} from "../api/network-data";
 import NotesList from "../components/NotesList";
 import SearchBar from "../components/SearchBar";
 import Navbar from "../components/Navbar";
@@ -8,19 +12,17 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { useInput } from "../hooks/useInput";
 import { useNotes } from "../hooks/useNotes";
 
-const HomePage = () => {
+const ArchivePage = () => {
   const { t } = useLanguage();
   const [keyword, onKeywordChange] = useInput("");
-  const { notes, loading, loadNotes } = useNotes(getActiveNotes);
+  const { notes, loading, loadNotes } = useNotes(getArchivedNotes);
 
   useEffect(() => {
     loadNotes();
   }, [loadNotes]);
 
-  const filteredNotes = notes.filter(
-    (note) =>
-      note.title.toLowerCase().includes(keyword.toLowerCase()) ||
-      note.body.toLowerCase().includes(keyword.toLowerCase()),
+  const filteredNotes = notes.filter((note) =>
+    note.title.toLowerCase().includes(keyword.toLowerCase()),
   );
 
   const handleDelete = async (id) => {
@@ -28,21 +30,21 @@ const HomePage = () => {
     loadNotes();
   };
 
-  const handleArchive = async (id) => {
-    await archiveNote(id);
+  const handleUnarchive = async (id) => {
+    await unarchiveNote(id);
     loadNotes();
   };
 
   return (
-    <div className="min-h-screen bg-(--bg) ">
+    <div className="min-h-screen bg-(--bg)">
       <Navbar />
-      <main className=" mx-auto px-4 sm:px-20 py-8 ">
+      <main className=" mx-auto px-4 sm:px-20 py-8">
         <div className="mb-6">
-          <h2 className="max-w-6xl text-xl font-bold text-(--text) mb-1">
-            {t.home}
+          <h2 className="text-xl font-bold text-(--text) mb-1">
+            {t.archiveTitle}
           </h2>
           <p className="text-sm text-(--text-muted)">
-            {notes.length} {notes.length === 1 ? t.note : t.notes}
+            {notes.length} {notes.length === 1 ? t.note : t.notes} Terarsip
           </p>
         </div>
 
@@ -54,8 +56,8 @@ const HomePage = () => {
           <NotesList
             notes={filteredNotes}
             onDelete={handleDelete}
-            onArchive={handleArchive}
-            onUnarchive={() => {}}
+            onArchive={() => {}}
+            onUnarchive={handleUnarchive}
           />
         )}
       </main>
@@ -63,4 +65,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default ArchivePage;

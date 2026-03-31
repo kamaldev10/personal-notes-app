@@ -1,84 +1,84 @@
 import React, { useState } from "react";
-import { addNote } from "../utils/local-data";
+import { addNote } from "../api/network-data";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeftCircle, Save } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
+import Navbar from "../components/Navbar";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useInput } from "../hooks/useInput";
 
 const AddNotePage = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-
+  const [title, onTitleChange] = useInput("");
+  const [body, onBodyChange] = useInput("");
+  const [loading, setLoading] = useState(false);
   const maxTitle = 50;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!body.trim() && !body.trim()) {
-      alert("Judul dan isi catatan tidak boleh kosong!");
-      return;
-    }
-
-    addNote({ title, body });
-
-    // redirect ke home setelah tambah
-    navigate("/");
+    if (!title.trim() || !body.trim()) return;
+    setLoading(true);
+    const { error } = await addNote({ title, body });
+    if (!error) navigate("/");
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 flex justify-center">
-      <div className="w-full max-w-2xl bg-white p-6 rounded-xl shadow-md">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="flex items-center text-2xl font-bold">
-            Tambah Catatan
-          </h1>
+    <div className="min-h-screen bg-(--bg)">
+      <Navbar />
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+        <div className="flex items-center gap-3 mb-6">
           <Link
             to="/"
-            className="flex text-sm text-gray-500 hover:text-gray-700"
+            className="p-2 rounded-lg text-(--text-muted) hover:bg-(--hover) hover:text-(--text) transition"
           >
-            <ArrowLeftCircle className="inline-block mr-1" />
-            <span>Kembali</span>
+            <ArrowLeft size={18} />
           </Link>
+          <h1 className="text-xl font-bold text-(--text)">{t.addNote}</h1>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Title */}
-          <div>
-            <input
-              type="text"
-              placeholder="Judul catatan..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value.slice(0, maxTitle))}
-              className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-gray-800"
-              autoFocus
+        <div className="bg-(--surface) border border-(--border) rounded-2xl p-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div>
+              <input
+                type="text"
+                placeholder={t.titlePlaceholder}
+                value={title}
+                onChange={(e) =>
+                  onTitleChange(e.target.value.slice(0, maxTitle))
+                }
+                className="w-full px-4 py-3 bg-(--bg) border border-(--border) rounded-xl text-(--text) placeholder-(--text-muted) focus:outline-none focus:ring-2 focus:ring-(--accent) transition text-base font-medium"
+                autoFocus
+              />
+              <p className="text-xs text-(--text-muted) mt-1 text-right">
+                {title.length}/{maxTitle}
+              </p>
+            </div>
+
+            <textarea
+              placeholder={t.bodyPlaceholder}
+              value={body}
+              onChange={onBodyChange}
+              rows={8}
+              className="w-full px-4 py-3 bg-(--bg) border border-(--border) rounded-xl text-(--text) placeholder-(--text-muted) focus:outline-none focus:ring-2 focus:ring-(--accent) transition resize-none text-sm leading-relaxed"
             />
-            <p className="text-sm text-gray-400 mt-1 text-right">
-              {title.length}/{maxTitle}
-            </p>
-          </div>
 
-          {/* Body */}
-          <textarea
-            placeholder="Tulis catatanmu di sini..."
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            rows={6}
-            className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-gray-800"
-          />
-
-          {/* Button */}
-          <button
-            type="submit"
-            className="flex gap-3 justify-center items-center bg-gray-900 hover:bg-black text-white py-3 rounded-lg font-medium transition"
-            disabled={!title.trim() || !body.trim()}
-          >
-            <Save />
-            <span> Simpan Catatan</span>
-          </button>
-        </form>
-      </div>
+            <button
+              type="submit"
+              disabled={!title.trim() || !body.trim() || loading}
+              className="flex items-center justify-center gap-2 py-3 bg-(--accent) text-white rounded-xl font-semibold text-sm hover:opacity-90 disabled:opacity-40 transition"
+            >
+              {loading ? (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Save size={16} />
+              )}
+              {t.save}
+            </button>
+          </form>
+        </div>
+      </main>
     </div>
   );
 };

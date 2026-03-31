@@ -1,81 +1,120 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   getNote,
   deleteNote,
   archiveNote,
   unarchiveNote,
-} from "../utils/local-data";
-import { ArrowLeftCircle } from "lucide-react";
+} from "../api/network-data";
+import { ArrowLeft, Trash2, ArchiveX, ArchiveRestore } from "lucide-react";
+import Navbar from "../components/Navbar";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const NoteDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
-  const note = getNote(id);
+  const [note, setNote] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  if (!note) {
+  useEffect(() => {
+    getNote(id).then(({ error, data }) => {
+      if (error || !data) navigate("/not-found");
+      else setNote(data);
+      setLoading(false);
+    });
+  }, [id]);
+
+  const handleDelete = async () => {
+    setActionLoading(true);
+    await deleteNote(id);
+    navigate("/");
+  };
+
+  const handleArchiveToggle = async () => {
+    setActionLoading(true);
+    if (note.archived) {
+      await unarchiveNote(id);
+      navigate("/archive");
+    } else {
+      await archiveNote(id);
+      navigate("/");
+    }
+  };
+
+  if (loading)
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-500">Catatan tidak ditemukan</p>
+      <div className="min-h-screen bg-(--bg)">
+        <Navbar />
+        <LoadingSpinner />
       </div>
     );
-  }
 
-  const handleDelete = () => {
-    deleteNote(id);
-    navigate("/");
-  };
-
-  const handleArchiveToggle = () => {
-    if (note.archived) {
-      unarchiveNote(id);
-    } else {
-      archiveNote(id);
-    }
-    navigate("/");
-  };
+  if (!note) return null;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 flex justify-center">
-      <div className="w-full max-w-3xl bg-white p-6 rounded-xl shadow-md">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <Link to="/" className="text-gray-500 hover:text-gray-700">
-            <ArrowLeftCircle className="inline-block mr-1" />
-            <span>Kembali</span>
+    <div className="min-h-screen bg-(--bg)">
+      <Navbar />
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+        {/* Back + Actions */}
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            to={note.archived ? "/archive" : "/"}
+            className="flex items-center gap-1.5 text-sm text-(--text-muted) hover:text-(--text) transition"
+          >
+            <ArrowLeft size={16} />
+            {t.back}
           </Link>
 
           <div className="flex gap-2">
             <button
               onClick={handleArchiveToggle}
-              className="bg-mauve-500 hover:bg-mauve-600 text-white px-4 py-2 rounded-lg"
+              disabled={actionLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-(--hover) text-(--text-muted) hover:text-(--text) disabled:opacity-50 transition"
             >
-              {note.archived ? "Unarchive" : "Archive"}
+              {note.archived ? (
+                <ArchiveRestore size={15} />
+              ) : (
+                <ArchiveX size={15} />
+              )}
+              {note.archived ? t.unarchive : t.archiveBtn}
             </button>
-
             <button
               onClick={handleDelete}
-              className="bg-rose-700 hover:bg-rose-600 text-white px-4 py-2 rounded-lg"
+              disabled={actionLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-100 disabled:opacity-50 transition"
             >
-              Delete
+              <Trash2 size={15} />
+              {t.delete}
             </button>
           </div>
         </div>
 
-        {/* Title */}
-        <h1 className="text-3xl font-bold text-gray-800">{note.title}</h1>
-
-        {/* Date */}
-        <p className="text-sm text-gray-400 mt-2 mb-6">
-          {new Date(note.createdAt).toLocaleString()}
-        </p>
-
-        {/* Body */}
-        <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-          {note.body}
-        </p>
-      </div>
+        {/* Content */}
+        <div className="bg-(--surface) border border-(--border) rounded-2xl p-6 sm:p-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-(--text) leading-tight">
+            {note.title}
+          </h1>
+          <p className="text-xs text-(--text-muted) mt-2 mb-6">
+            {t.createdAt} ·{" "}
+            {new Date(note.createdAt).toLocaleString("id-ID", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
+          <div className="border-t border-(--border) pt-6">
+            <p className="text-(--text-secondary) leading-relaxed whitespace-pre-line text-sm sm:text-base">
+              {note.body}
+            </p>
+          </div>
+        </div>
+      </main>
     </div>
   );
 };
