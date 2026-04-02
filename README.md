@@ -6,6 +6,7 @@ Personal notes app is a website application to manage notes everyone on the whol
 
 ## Struktur Folder
 
+```bash
 src/
 ├── App.jsx # Routing + Protected/Guest routes
 ├── main.jsx # Entry point + semua Context providers
@@ -37,6 +38,7 @@ src/
 ├── AddNotePage.jsx # Form tambah catatan baru
 ├── NoteDetailPage.jsx # Detail catatan + archive/delete
 └── NotFoundPage.jsx # Halaman 404
+```
 
 ---
 
